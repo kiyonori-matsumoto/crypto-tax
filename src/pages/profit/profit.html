@@ -1,0 +1,49 @@
+<ion-header>
+    <ion-navbar>
+      <ion-buttons end>
+        <button ion-button icon-only clear color="dark" [navPush]="helpPage">
+          <ion-icon name="help-circle"></ion-icon>
+        </button>
+        <button ion-button icon-only clear color="dark">
+          <ion-icon name="contact"></ion-icon>
+        </button>
+      </ion-buttons>
+      <ion-title>
+        暗号通貨税金電卓
+      </ion-title>
+    </ion-navbar>
+  </ion-header>
+  <ion-content padding>
+    <ion-grid>
+      <ion-row>
+        <ion-col col-xl-4 col-lg-6 *ngIf="zp.key" >
+          <ion-card>
+            <ion-card-header ion-item>
+              <ion-card-title>ZAIF収益</ion-card-title>
+              <button ion-button icon-only item-end clear color="dark" (click)="refreshAgg()">
+                <ion-icon name="refresh"></ion-icon>
+              </button>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list>
+                <ion-item *ngFor="let item of aggregate">
+                  {{item.currency_pair}} 
+                  <p item-end>{{item.profit | currency:'JPY':'1.0-1'}}</p>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+    <ion-textarea [(ngModel)]="text"></ion-textarea>
+    <ion-fab bottom right>
+      <button ion-fab>
+        <ion-icon name="add"></ion-icon>
+      </button>
+      <ion-fab-list side="top">
+        <button ion-fab (click)="open('zaif')">Zaif</button>
+      </ion-fab-list>
+    </ion-fab>
+  </ion-content>
+  

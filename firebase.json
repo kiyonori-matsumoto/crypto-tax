@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "predeploy": "npm --prefix functions run build"
+  },
+  "hosting": {
+    "public": "platforms/browser/www",
+    "rewrites": [{
+      "source": "/zaif_public/*", "function": "zaif_public"
+    }]
+  }
+}

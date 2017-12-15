@@ -1,18 +1,90 @@
 <ion-header>
   <ion-navbar>
-    <button ion-button menuToggle>
+    <!-- <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
-    </button>
-    <ion-title>Home</ion-title>
+    </button> -->
+    <ion-buttons end>
+      <button ion-button icon-only clear color="dark" [navPush]="helpPage">
+        <ion-icon name="help-circle"></ion-icon>
+      </button>
+      <button ion-button icon-only clear color="dark">
+        <ion-icon name="contact"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      暗号通貨税金電卓
+    </ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding>
-  <h3>Ionic Menu Starter</h3>
-
-  <p>
-    If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will show you the way.
-  </p>
-
-  <button ion-button secondary menuToggle>Toggle Menu</button>
+  <ion-grid *ngIf="zp.key">
+    <h2>ZAIF</h2>
+    <ion-row>
+      <ion-col col-xl-4 col-lg-6>
+        <ion-card>
+          <ion-card-header ion-item>
+            <ion-card-title>資産一覧(日本円)</ion-card-title>
+            <button ion-button icon-only item-end clear color="dark" (click)="refreshFunds()">
+              <ion-icon name="refresh"></ion-icon>
+            </button>
+            <ion-spinner item-end *ngIf="loadingFunds | async" ></ion-spinner>
+          </ion-card-header>
+          <ion-card-content>
+            <div id="zaifChart" [style.width.%]="100" [style.height.px]="300"></div>
+          </ion-card-content>
+        </ion-card> 
+      </ion-col>
+      <ion-col col-xl-4 col-lg-6>
+        <ion-card>
+          <ion-card-header ion-item>
+            <ion-card-title>税金</ion-card-title>
+            <button ion-button icon-only item-end clear color="dark">
+              <ion-icon name="refresh"></ion-icon>
+            </button>
+            <button ion-button icon-only item-end clear color="dark">
+              <ion-icon name="settings"></ion-icon>
+            </button>
+          </ion-card-header>
+          <ion-card-content>
+          <ion-item>
+              <ion-label>暗号通貨所得</ion-label>
+              <div item-content>{{totalCryptoProfit | currency:'JPY':'1.0-1'}}</div>
+            </ion-item>
+            <ion-item>
+              <ion-label>その他の雑所得</ion-label>
+              <ion-input type="number" [(ngModel)]="incomes.miscellaneous" text-right></ion-input>
+              <div item-end>万円</div>
+            </ion-item>
+            <ion-item>
+              <ion-label>その他の所得</ion-label>
+              <ion-input type="number" [(ngModel)]="incomes.other" text-right></ion-input>
+              <div item-end>万円</div>
+            </ion-item>
+            <ion-item>
+              <ion-label>総所得</ion-label>
+              <div item-content>{{totalProfit() | currency:'JPY':'1.0-1'}}</div>
+            </ion-item>
+            <ion-item>
+              <ion-label>雑所得税率(%)</ion-label>
+              <div item-content>{{calcTaxRate() | percent}}</div>
+            </ion-item>
+            <ion-item>
+              <ion-label>暗号通貨税金</ion-label>
+              <div item-content>{{calcTaxRate() * totalCryptoProfit | currency:'JPY':'1.0-1'}}</div>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  <ion-textarea [(ngModel)]="text"></ion-textarea>
+  <ion-fab bottom right>
+    <button ion-fab>
+      <ion-icon name="add"></ion-icon>
+    </button>
+    <ion-fab-list side="top">
+      <button ion-fab (click)="open('zaif')">Zaif</button>
+    </ion-fab-list>
+  </ion-fab>
 </ion-content>

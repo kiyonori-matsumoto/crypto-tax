@@ -2,5 +2,13 @@
   "name": "crypto-tax",
   "app_id": "641c20a1",
   "type": "ionic-angular",
-  "integrations": {}
+  "integrations": {
+    "cordova": {}
+  },
+  "proxies": [
+    {
+      "path": "/api/zaif",
+      "proxyUrl": "https://api.zaif.jp"
+    }
+  ]
 }
