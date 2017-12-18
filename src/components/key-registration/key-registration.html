@@ -6,7 +6,10 @@
 </ion-header>
 
 <ion-content padding>
-  <ion-list>
+  <ion-list no-lines>
+    <ion-item>
+      <p ion-text color="danger">情報の閲覧権限のみのAPIキーを設定してください</p>
+    </ion-item>
     <ion-item>
       <ion-label floating>{{provider | uppercase}} API KEY</ion-label>
       <ion-input type="text" [(ngModel)]="key"></ion-input>
@@ -14,6 +17,14 @@
     <ion-item>
       <ion-label floating>{{provider | uppercase}} SECRET KEY</ion-label>
       <ion-input type="text" [(ngModel)]="secret"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label>API KEY, SECRETの権限が閲覧のみであることを確認した</ion-label>
+      <ion-checkbox></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label>算出値が概算値であることを確認した</ion-label>
+      <ion-checkbox></ion-checkbox>
     </ion-item>
     <ion-item>
       <button ion-button block (click)="connect()">CONNECT</button>
