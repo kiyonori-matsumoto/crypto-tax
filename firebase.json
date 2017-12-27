@@ -3,6 +3,7 @@
     "predeploy": "npm --prefix functions run build"
   },
   "hosting": {
+    "predeploy": "ionic build browser --prod",
     "public": "platforms/browser/www",
     "rewrites": [{
       "source": "/zaif_public/*", "function": "zaif_public"
