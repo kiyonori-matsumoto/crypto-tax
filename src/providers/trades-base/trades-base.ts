@@ -20,10 +20,15 @@ export abstract class TradesBaseProvider {
   public connect() {
     const token = this.restoreTokens();
     if (token) {
-      this.updateFundsAsJpy(false)
-      .then(e => this.fundsSubject.next(e));
-      this.updateAggregateHistory(false)
-      .then(e => this.aggSubject.next(e));
+      if (!token.key || !token.secret) {
+        return Promise.reject(new Error('key and secret must be provided'));
+      }
+      return Promise.all([
+        this.updateFundsAsJpy(false)
+        .then(e => this.fundsSubject.next(e)),
+        this.updateAggregateHistory(false)
+        .then(e => this.aggSubject.next(e)),
+      ]);
     }
   }
 
@@ -43,7 +48,7 @@ export abstract class TradesBaseProvider {
   public abstract aggregateTradeHistory(update: boolean):
     Promise<AggregateInterface[]> | Observable<AggregateInterface[]>;
 
-  public updateFundsAsJpy(update = true) {
+  public updateFundsAsJpy(update = true): Promise<any> {
     const d = this.getFundsAsJpy(update);
     if (!d) return null;
     if (d instanceof Promise) {
@@ -58,7 +63,7 @@ export abstract class TradesBaseProvider {
     }
   }
 
-  public updateAggregateHistory(update = true) {
+  public updateAggregateHistory(update = true): Promise<any> {
     const d = this.aggregateTradeHistory(update)
     if (d instanceof Promise) {
       return d.then(e => {

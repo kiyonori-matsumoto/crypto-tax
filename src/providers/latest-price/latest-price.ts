@@ -15,14 +15,24 @@ import 'rxjs/add/operator/publishReplay'
 @Injectable()
 export class LatestPriceProvider {
 
-  private readonly latestPriceSubject = new Subject<any>();
-  public readonly latestPrice$: Observable<any>;
+  private readonly latestPriceSubject = new Subject<ILatestPrice[]>();
+  public readonly latestPrice$: Observable<ILatestPrice[]>;
 
   constructor(
     private afs: AngularFirestore,
   ) {
     console.log('Hello LatestPriceProvider Provider');
-    this.latestPrice$ = this.afs.collection('latest_prices').valueChanges()
+    this.latestPrice$ = this.afs.collection<ILatestPrice>('latest_prices').valueChanges()
   }
+}
 
+export interface ILatestPrice {
+  available_supply?: number;
+  market_cap?: number;
+  max_supply?: number;
+  price: number;
+  symbol: string;
+  time: number;
+  total_supply?: number;
+  volume_24h?: number;
 }

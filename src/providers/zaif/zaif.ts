@@ -9,7 +9,7 @@ import { TradeAggregateProvider, AggregateInterface } from '../trade-aggregate/t
 import * as Lock from 'async-lock';
 import * as firebase from 'firebase'
 import { AngularFirestore } from 'angularfire2/firestore';
-import { LatestPriceProvider } from '../latest-price/latest-price';
+import { LatestPriceProvider, ILatestPrice } from '../latest-price/latest-price';
 
 /*
   Generated class for the ZaifProvider provider.
@@ -44,9 +44,7 @@ export class ZaifProvider extends TradesBaseProvider {
   ) {
     super()
     console.log('Hello ZaifProvider Provider');
-    // this.z = new zaif.V2Private()
-    this.connect();
-    this.lpp.latestPrice$.do(console.log)
+    // this.connect();
   }
 
   saveTokens(key: string, secret: string) {
@@ -80,7 +78,6 @@ export class ZaifProvider extends TradesBaseProvider {
   }
 
   getInfo() {
-    // return this.z.get_info();
     return this.lock.acquire(this.key, () => {
       return this.http.post(this.URL_PRIVATE +  '/info', {
         key: this.key,
@@ -107,7 +104,7 @@ export class ZaifProvider extends TradesBaseProvider {
 
     return this.lpp.latestPrice$
     .take(1)
-    .mergeMap<any, FundsInterface[]>(latest_prices => {
+    .mergeMap<ILatestPrice[], FundsInterface[]>(latest_prices => {
       return this.getInfo()
       .then((info: any) => {
         return Promise.all(Object.entries(info.funds)

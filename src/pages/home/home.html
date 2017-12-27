@@ -23,12 +23,11 @@
     <ion-row>
       <ion-col col-xl-4 col-lg-6 *ngFor="let k of object.keys(PROVIDERS)">
         <div *ngIf="PROVIDERS[k].key">
-          <funds-chart [funds$]="PROVIDERS[k].funds$" (refreshFunds)="refreshFunds(PROVIDERS[k])"   [providerName]="k"></funds-chart>
+          <funds-chart [funds$]="PROVIDERS[k].funds$" (refreshFunds)="PROVIDERS[k].updateFundsAsJpy()" [providerName]="k"></funds-chart>
         </div> 
       </ion-col>
     </ion-row>
   </ion-grid>
-  <ion-textarea [(ngModel)]="text"></ion-textarea>
   <ion-fab bottom right>
     <button ion-fab>
       <ion-icon name="add"></ion-icon>

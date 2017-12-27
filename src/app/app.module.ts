@@ -24,6 +24,7 @@ import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 import { LatestPriceProvider } from '../providers/latest-price/latest-price';
 import { TaxPageModule } from '../pages/tax/tax.module';
+import { LoginPageModule } from '../pages/login/login.module';
 
 export const firebaseConfig = {
   apiKey: "AIzaSyDUq-Sp1w1OnluZgDzBwYjUlxzf5-k8Ses",
@@ -53,6 +54,7 @@ export const firebaseConfig = {
     AngularFireModule.initializeApp(firebaseConfig),
     AngularFirestoreModule,
     TaxPageModule,
+    LoginPageModule,
   ],
   bootstrap: [IonicApp],
   entryComponents: [

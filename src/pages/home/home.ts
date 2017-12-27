@@ -13,6 +13,7 @@ import 'rxjs/add/operator/do'
 import { HelpPage } from '../help/help';
 import { BitflyerProvider } from '../../providers/bitflyer/bitflyer';
 import { TradesBaseProvider } from '../../providers/trades-base/trades-base';
+import { AlertController } from 'ionic-angular/components/alert/alert-controller';
 
 @Component({
   selector: 'page-home',
@@ -45,6 +46,7 @@ export class HomePage {
     private AmCharts: AmChartsService,
     private agg: TradeAggregateProvider,
     private modal: ModalController,
+    private alert: AlertController,
   ) {
     Object.entries(this.PROVIDERS).forEach(([k, v]) => {
       const token = v.restoreTokens();
@@ -56,84 +58,15 @@ export class HomePage {
   }
   public connect(provider: string, p: TradesBaseProvider) {
     setTimeout(() => {
-      // this.chart = this.AmCharts.makeChart(`${provider}Chart`, {
-      //   type: 'pie',
-      //   theme: 'light',
-      //   dataProvider: [],
-      //   valueField: 'price',
-      //   titleField: 'currency',
-      //   groupPercent: 5,
-      //   // labelsEnabled: false,
-      //   labelText: '[[percents]]%',
-      //   autoMargins: false,
-      //   marginTop: 0,
-      //   marginBottom: 0,
-      //   marginLeft: 0,
-      //   marginRight: 0,
-      //   // pullOutRadius: 0,
-      //   labelRadius: -35,
-      // })
-      
-      // p.funds$
-      // .subscribe(data => {
-      //   this.zaif_funds = data;
-      //   this.AmCharts.updateChart(this.chart, () => {
-      //     this.chart.dataProvider = data;
-      //   })
-      // });
 
-      p.agg$
-      .subscribe(data => {
-        this.totalCryptoProfit = data.find(e => e.currency_pair === 'Total').profit.toString(10);
-        this.aggregate = data;
+      p.connect().catch(e => {
+        console.log('test', e);
+        this.alert.create({title: 'Error', message: e.message, buttons: ['Ok']}).present();
+        return false;
       })
-
-      p.connect();
       
     }, 100);
   }
-
-  // public connectZaif() {
-  //   // this.zp.saveTokens(this.zaif_key, this.zaif_secret)
-  //   setTimeout(() => {
-  //     this.chart = this.AmCharts.makeChart('zaifChart', {
-  //       type: 'pie',
-  //       theme: 'light',
-  //       dataProvider: [],
-  //       valueField: 'price',
-  //       titleField: 'currency',
-  //       groupPercent: 5,
-  //       // labelsEnabled: false,
-  //       labelText: '[[percents]]%',
-  //       autoMargins: false,
-  //       marginTop: 0,
-  //       marginBottom: 0,
-  //       marginLeft: 0,
-  //       marginRight: 0,
-  //       // pullOutRadius: 0,
-  //       labelRadius: -35,
-  //     })
-      
-  //     this.zp.funds$
-  //     .subscribe(data => {
-  //       // this.zaif_funds = data;
-  //       this.AmCharts.updateChart(this.chart, () => {
-  //         this.chart.dataProvider = data;
-  //       })
-  //       console.log(this.chart)
-  //     });
-
-  //     this.zp.agg$
-  //     .do(console.log)
-  //     .subscribe(data => {
-  //       this.totalCryptoProfit = data.find(e => e.currency_pair === 'Total').profit;
-  //       this.aggregate = data;
-  //     })
-
-  //     this.zp.connect();
-      
-  //   }, 100);
-  // }
 
   open(provider: string) {
     const m = this.modal.create(KeyRegistrationComponent, {
@@ -142,49 +75,21 @@ export class HomePage {
       'secret': this.PROVIDERS[provider].secret
     })
     m.onDidDismiss((data, role) => {
-      const p = this.PROVIDERS[provider];
+      const p: TradesBaseProvider = this.PROVIDERS[provider];
       if (data) {
         console.log(data)
         p.saveTokens(data.key, data.secret)
         // this.refreshFunds(p);
-        p.updateFundsAsJpy();
-        this.refreshAgg(p);
+        p.updateFundsAsJpy()
+        .catch(e => {
+          console.log(e);
+          this.alert.create({title: 'Error', message: e.message, buttons: ['Ok']}).present();
+          return false;
+        })
+        // this.refreshAgg(p);
         this.connect(provider, p);
       }
     })
     m.present();
-  }
-
-  refreshFunds(p: TradesBaseProvider) {
-    this.loadingFunds.next(true);
-    p.updateFundsAsJpy()
-    .then(() => this.loadingFunds.next(false));
-  }
-  
-  refreshAgg(p: TradesBaseProvider) {
-    this.loadingAggs.next(true);
-    p.updateAggregateHistory()
-    .then(() => this.loadingAggs.next(false));
-  }
-
-  totalProfit() {
-    return (parseInt(this.incomes.miscellaneous) + parseInt(this.incomes.other)) * 10000 +
-      parseInt(this.totalCryptoProfit)
-  }
-
-  calcTaxRate() {
-    const misc = parseInt(this.incomes.miscellaneous) * 10000;
-    const other = parseInt(this.incomes.other) * 10000;
-    if (misc + parseInt(this.totalCryptoProfit) < 200000) {
-      return 0;
-    }
-    const profit = this.totalProfit();
-    if (profit > 40000000) return 0.45;
-    if (profit > 18000000) return 0.4;
-    if (profit >  9000000) return 0.33;
-    if (profit >  6950000) return 0.23;
-    if (profit >  3300000) return 0.2;
-    if (profit >  1950000) return 0.1;
-    return 0.05;
   }
 }

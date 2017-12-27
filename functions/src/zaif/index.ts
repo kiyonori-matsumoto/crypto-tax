@@ -68,6 +68,12 @@ app.post('/info', (req, res, next) => {
   .catch(next);
 })
 
+app.use((err, req, res, next) => {
+  const status = err.statusCode || 500;
+  const error = err || {message: 'Fatal Error'};
+  res.status(status).json(error);
+})
+
 export const app2 = express();
 
 app2.use(compression());
