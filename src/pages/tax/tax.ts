@@ -33,8 +33,9 @@ export class TaxPage {
     public zp: ZaifProvider,
     public bfp: BitflyerProvider,
   ) {
+    const d = [{currency_pair: 'Total', profit: 0}]
     Observable.combineLatest(
-      this.zp.agg$, this.bfp.agg$
+      this.zp.agg$.startWith(d), this.bfp.agg$.startWith(d)
     ).subscribe(aggs => {
       this.totalCryptoProfit = (aggs.reduce((a, e) => e.find(_e => _e.currency_pair === 'Total').profit + a, 0)).toString(10);
     })
