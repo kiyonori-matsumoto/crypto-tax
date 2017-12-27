@@ -14,29 +14,16 @@
     </ion-navbar>
   </ion-header>
   <ion-content padding>
+    <h2>収支一覧</h2>
     <ion-grid>
       <ion-row>
-        <ion-col col-xl-4 col-lg-6 *ngIf="zp.key" >
-          <ion-card>
-            <ion-card-header ion-item>
-              <ion-card-title>ZAIF収益</ion-card-title>
-              <button ion-button icon-only item-end clear color="dark" (click)="refreshAgg()">
-                <ion-icon name="refresh"></ion-icon>
-              </button>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-list>
-                <ion-item *ngFor="let item of aggregate">
-                  {{item.currency_pair}} 
-                  <p item-end>{{item.profit | currency:'JPY':'1.0-1'}}</p>
-                </ion-item>
-              </ion-list>
-            </ion-card-content>
-          </ion-card>
+        <ion-col col-xl-4 col-lg-6 *ngFor="let k of object.keys(PROVIDERS)">
+          <div *ngIf="PROVIDERS[k].key">
+            <profit-list [agg$]="PROVIDERS[k].agg$" [providerName]="k" (refreshAgg)="refreshAgg(PROVIDERS[k])"></profit-list>
+          </div>
         </ion-col>
       </ion-row>
     </ion-grid>
-    <ion-textarea [(ngModel)]="text"></ion-textarea>
     <ion-fab bottom right>
       <button ion-fab>
         <ion-icon name="add"></ion-icon>

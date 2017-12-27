@@ -1,0 +1,20 @@
+<!-- Generated template for the ProfitListComponent component -->
+<div>
+  <ion-card>
+    <ion-card-header ion-item>
+      <ion-card-title>{{providerName}}収益</ion-card-title>
+      <button ion-button icon-only item-end clear color="dark" (click)="refresh()">
+        <ion-icon name="refresh"></ion-icon>
+      </button>
+      <ion-spinner item-end *ngIf="loading | async" ></ion-spinner>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item *ngFor="let item of aggregate">
+          {{item.currency_pair}} 
+          <p item-end>{{item.profit | currency:'JPY':'1.0-1'}}</p>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+</div>

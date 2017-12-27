@@ -1,0 +1,56 @@
+<!--
+  Generated template for the TaxPage page.
+
+  See http://ionicframework.com/docs/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>tax</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+    <ion-card>
+        <ion-card-header ion-item>
+          <ion-card-title>税金</ion-card-title>
+          <!-- <button ion-button icon-only item-end clear color="dark">
+            <ion-icon name="refresh"></ion-icon>
+          </button>
+          <button ion-button icon-only item-end clear color="dark">
+            <ion-icon name="settings"></ion-icon>
+          </button> -->
+        </ion-card-header>
+        <ion-card-content>
+        <ion-item>
+            <ion-label>暗号通貨所得</ion-label>
+            <div item-content>{{totalCryptoProfit | currency:'JPY':'1.0-1'}}</div>
+          </ion-item>
+          <ion-item>
+            <ion-label>その他の雑所得</ion-label>
+            <ion-input type="number" [(ngModel)]="incomes.miscellaneous" text-right></ion-input>
+            <div item-end>万円</div>
+          </ion-item>
+          <ion-item>
+            <ion-label>その他の所得</ion-label>
+            <ion-input type="number" [(ngModel)]="incomes.other" text-right></ion-input>
+            <div item-end>万円</div>
+          </ion-item>
+          <ion-item>
+            <ion-label>総所得</ion-label>
+            <div item-content>{{totalProfit() | currency:'JPY':'1.0-1'}}</div>
+          </ion-item>
+          <ion-item>
+            <ion-label>雑所得税率(%)</ion-label>
+            <div item-content>{{calcTaxRate() | percent}}</div>
+          </ion-item>
+          <ion-item>
+            <ion-label>暗号通貨税金</ion-label>
+            <div item-content>{{calcTaxRate() * totalCryptoProfit | currency:'JPY':'1.0-1'}}</div>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+</ion-content>

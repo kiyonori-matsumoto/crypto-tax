@@ -8,6 +8,8 @@ import { TradeAggregateProvider } from '../../providers/trade-aggregate/trade-ag
 
 import * as moment from 'moment';
 import { KeyRegistrationComponent } from '../../components/key-registration/key-registration';
+import { TradesBaseProvider } from '../../providers/trades-base/trades-base';
+import { BitflyerProvider } from '../../providers/bitflyer/bitflyer';
 /**
  * Generated class for the ProfitPage page.
  *
@@ -26,13 +28,16 @@ export class ProfitPage {
   totalCryptoProfit: number = 0;
   incomes = {miscellaneous: 0, other: 0}
 
-  private readonly providers = {
+  public readonly PROVIDERS = {
     'zaif': this.zp,
+    'bitflyer': this.bfp,
   }
+  public readonly object = Object;
 
   constructor(
     public navCtrl: NavController,
     public zp: ZaifProvider,
+    public bfp: BitflyerProvider,
     private AmCharts: AmChartsService,
     private agg: TradeAggregateProvider,
     private modal: ModalController,
@@ -66,19 +71,26 @@ export class ProfitPage {
       'secret': this.zp.secret
     })
     m.onDidDismiss((data, role) => {
-      const p = this.providers[provider];
+      const p = this.PROVIDERS[provider];
       if (data) {
         console.log(data)
-        this.zp.saveTokens(data.key, data.secret)
-        this.refreshAgg();
-        this.connectZaif();
+        p.saveTokens(data.key, data.secret)
+        this.refreshFunds(p);
+        this.refreshAgg(p);
+        p.connect();
       }
     })
     m.present();
   }
 
-  refreshAgg() {
-    this.zp.updateAggregateHistory();
+  refreshFunds(p: TradesBaseProvider) {
+    this.loadingFunds.next(true);
+    p.updateFundsAsJpy()
+    .then(() => this.loadingFunds.next(false));
+  }
+
+  refreshAgg(p: TradesBaseProvider) {
+    p.updateAggregateHistory()
   }
 
 }

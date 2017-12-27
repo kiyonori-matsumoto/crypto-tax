@@ -20,9 +20,9 @@ export abstract class TradesBaseProvider {
   public connect() {
     const token = this.restoreTokens();
     if (token) {
-      this.getFundsAsJpy(false)
+      this.updateFundsAsJpy(false)
       .then(e => this.fundsSubject.next(e));
-      this.aggregateTradeHistory(false)
+      this.updateAggregateHistory(false)
       .then(e => this.aggSubject.next(e));
     }
   }
@@ -39,22 +39,41 @@ export abstract class TradesBaseProvider {
   public abstract saveTokens(key: string, secret: string);
   public abstract restoreTokens();
   public abstract getFundsAsJpy(update: boolean):
-    Promise<FundsInterface[]>;
+    Promise<FundsInterface[]> | Observable<FundsInterface[]>;
   public abstract aggregateTradeHistory(update: boolean):
-    Promise<AggregateInterface[]>;
+    Promise<AggregateInterface[]> | Observable<AggregateInterface[]>;
 
-  public updateFundsAsJpy() {
-    return this.getFundsAsJpy(true)
-    .then(e => this.fundsSubject.next(e));
+  public updateFundsAsJpy(update = true) {
+    const d = this.getFundsAsJpy(update);
+    if (!d) return null;
+    if (d instanceof Promise) {
+      return d.then(e => {
+        this.fundsSubject.next(e);
+        return e;
+      })
+    } else {
+      const e = d.share();
+      e.subscribe(this.fundsSubject)
+      return e.take(1).toPromise();
+    }
   }
 
-  public updateAggregateHistory() {
-    return this.aggregateTradeHistory(true)
-    .then(e => this.aggSubject.next(e));
+  public updateAggregateHistory(update = true) {
+    const d = this.aggregateTradeHistory(update)
+    if (d instanceof Promise) {
+      return d.then(e => {
+        this.aggSubject.next(e);
+        return e;
+      })
+    } else {
+      const e = d.share();
+      e.subscribe(this.aggSubject)
+      return e.take(1).toPromise();
+    }
   }
 }
 
-interface FundsInterface {
+export interface FundsInterface {
   currency: string;
   price: string;
 }

@@ -12,69 +12,19 @@
       </button>
     </ion-buttons>
     <ion-title>
-      暗号通貨税金電卓
+      CryptoTax
     </ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding>
-  <ion-grid *ngIf="zp.key">
-    <h2>ZAIF</h2>
+  <h2>資産一覧</h2>
+  <ion-grid>
     <ion-row>
-      <ion-col col-xl-4 col-lg-6>
-        <ion-card>
-          <ion-card-header ion-item>
-            <ion-card-title>資産一覧(日本円)</ion-card-title>
-            <button ion-button icon-only item-end clear color="dark" (click)="refreshFunds()">
-              <ion-icon name="refresh"></ion-icon>
-            </button>
-            <ion-spinner item-end *ngIf="loadingFunds | async" ></ion-spinner>
-          </ion-card-header>
-          <ion-card-content>
-            <div id="zaifChart" [style.width.%]="100" [style.height.px]="300"></div>
-          </ion-card-content>
-        </ion-card> 
-      </ion-col>
-      <ion-col col-xl-4 col-lg-6>
-        <ion-card>
-          <ion-card-header ion-item>
-            <ion-card-title>税金</ion-card-title>
-            <button ion-button icon-only item-end clear color="dark">
-              <ion-icon name="refresh"></ion-icon>
-            </button>
-            <button ion-button icon-only item-end clear color="dark">
-              <ion-icon name="settings"></ion-icon>
-            </button>
-          </ion-card-header>
-          <ion-card-content>
-          <ion-item>
-              <ion-label>暗号通貨所得</ion-label>
-              <div item-content>{{totalCryptoProfit | currency:'JPY':'1.0-1'}}</div>
-            </ion-item>
-            <ion-item>
-              <ion-label>その他の雑所得</ion-label>
-              <ion-input type="number" [(ngModel)]="incomes.miscellaneous" text-right></ion-input>
-              <div item-end>万円</div>
-            </ion-item>
-            <ion-item>
-              <ion-label>その他の所得</ion-label>
-              <ion-input type="number" [(ngModel)]="incomes.other" text-right></ion-input>
-              <div item-end>万円</div>
-            </ion-item>
-            <ion-item>
-              <ion-label>総所得</ion-label>
-              <div item-content>{{totalProfit() | currency:'JPY':'1.0-1'}}</div>
-            </ion-item>
-            <ion-item>
-              <ion-label>雑所得税率(%)</ion-label>
-              <div item-content>{{calcTaxRate() | percent}}</div>
-            </ion-item>
-            <ion-item>
-              <ion-label>暗号通貨税金</ion-label>
-              <div item-content>{{calcTaxRate() * totalCryptoProfit | currency:'JPY':'1.0-1'}}</div>
-            </ion-item>
-          </ion-card-content>
-        </ion-card>
+      <ion-col col-xl-4 col-lg-6 *ngFor="let k of object.keys(PROVIDERS)">
+        <div *ngIf="PROVIDERS[k].key">
+          <funds-chart [funds$]="PROVIDERS[k].funds$" (refreshFunds)="refreshFunds(PROVIDERS[k])"   [providerName]="k"></funds-chart>
+        </div> 
       </ion-col>
     </ion-row>
   </ion-grid>
@@ -85,6 +35,7 @@
     </button>
     <ion-fab-list side="top">
       <button ion-fab (click)="open('zaif')">Zaif</button>
+      <button ion-fab (click)="open('bitflyer')">Bitflyer</button>
     </ion-fab-list>
   </ion-fab>
 </ion-content>

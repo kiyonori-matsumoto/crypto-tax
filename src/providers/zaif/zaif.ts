@@ -4,9 +4,13 @@ import { Injectable } from '@angular/core';
 import * as zaif from 'zaif-promise';
 import { SecureStorage, SecureStorageObject } from '@ionic-native/secure-storage';
 import * as moment from 'moment';
-import { TradesBaseProvider } from '../trades-base/trades-base';
+import { TradesBaseProvider, FundsInterface } from '../trades-base/trades-base';
 import { TradeAggregateProvider, AggregateInterface } from '../trade-aggregate/trade-aggregate';
 import * as Lock from 'async-lock';
+import * as firebase from 'firebase'
+import { AngularFirestore } from 'angularfire2/firestore';
+import { LatestPriceProvider } from '../latest-price/latest-price';
+
 /*
   Generated class for the ZaifProvider provider.
 
@@ -34,12 +38,15 @@ export class ZaifProvider extends TradesBaseProvider {
     public http: HttpClient,
     public jsonp: Jsonp,
     private secureStorage: SecureStorage,
-    private agg: TradeAggregateProvider
+    private afs: AngularFirestore,
+    private agg: TradeAggregateProvider,
+    private lpp: LatestPriceProvider,
   ) {
     super()
     console.log('Hello ZaifProvider Provider');
     // this.z = new zaif.V2Private()
     this.connect();
+    this.lpp.latestPrice$.do(console.log)
   }
 
   saveTokens(key: string, secret: string) {
@@ -82,13 +89,6 @@ export class ZaifProvider extends TradesBaseProvider {
     });
   }
 
-  getLatestPrice(currency: string) {
-    // return zaif.Public.last_price(`${currency.toLowerCase()}_jpy`);
-    return this.http.get(`${this.URL_PUBLIC}/latest_price/${currency.toLowerCase()}_jpy`)
-    .do(console.log)
-    .toPromise();
-  }
-
   getTradeHistory(from: number = 0, to: number = 0, is_token: boolean = false) {
     return this.lock.acquire(this.key, () => {
       return this.http.post(this.URL_PRIVATE + '/trade_history', {
@@ -97,36 +97,6 @@ export class ZaifProvider extends TradesBaseProvider {
         from, to, is_token
       }).toPromise();
     });
-    // const n = 500
-
-    // const execute = (history, history_sum = {}) => {
-    //   history_sum = Object.assign({}, history, history_sum)
-    //   let len
-    //   if ((len = Object.keys(history).length) == n) {
-    //     return this.z.trade_history({
-    //       is_token: is_token,
-    //       end: to,
-    //       from_id: parseInt(Object.keys(history)[len-1]),
-    //       count: n
-    //     }).then(history => {
-    //       return execute(history, history_sum);
-    //     })
-    //   } else {
-    //     return history_sum;
-    //   }
-    // }
-
-    // if(!to) {
-    //   to = moment().endOf('year').unix();
-    // }
-    // return this.z.trade_history({
-    //   since: from,
-    //   end: to,
-    //   is_token: is_token,
-    //   count: n,
-    // }).then(history => {
-    //   return execute(history);
-    // })
   }
 
   getFundsAsJpy(update: boolean = false) {
@@ -134,32 +104,39 @@ export class ZaifProvider extends TradesBaseProvider {
       const d = localStorage.getItem('zaif_funds');
       return Promise.resolve(JSON.parse(d));
     }
-    return this.getInfo()
-    .then((info: any) => {
-      return Promise.all(Object.entries(info.funds)
-        .map(e => {
-          let jpy_async = null;
-          if (! e[0].match(/jpy/i)) {
-            return this.getLatestPrice(e[0])
-            .then(f => f.last_price * e[1] || 0)
-          } else {
-            return e[1];
-          }
+
+    return this.lpp.latestPrice$
+    .take(1)
+    .mergeMap<any, FundsInterface[]>(latest_prices => {
+      return this.getInfo()
+      .then((info: any) => {
+        return Promise.all(Object.entries(info.funds)
+          .map(e => {
+            if (! e[0].match(/jpy/i)) {
+              return (latest_prices &&
+                latest_prices.find(f => f.symbol === e[0].toUpperCase()) &&
+                latest_prices.find(f => f.symbol === e[0].toUpperCase()).price * e[1])
+                || 0;
+              // return f && f.price * e[1] || 0
+            } else {
+              return e[1];
+            }
+          })
+        )
+        .then((prices: any[]) => {
+          const ret = Object.entries(info.funds)
+          .map((e, idx) => {
+            const price = <number>prices[idx];
+            return {
+              currency: e[0],
+              price: Math.round(price),
+            }
+          }).sort((a, b) => b.price - a.price)
+
+          localStorage.setItem('zaif_funds', JSON.stringify(ret));
+
+          return ret;
         })
-      )
-      .then((prices: any[]) => {
-        const ret = Object.entries(info.funds)
-        .map((e, idx) => {
-          const price = <number>prices[idx];
-          return {
-            currency: e[0],
-            price: Math.round(price),
-          }
-        }).sort((a, b) => b.price - a.price)
-
-        localStorage.setItem('zaif_funds', JSON.stringify(ret));
-
-        return ret;
       })
     })
   }
@@ -173,7 +150,13 @@ export class ZaifProvider extends TradesBaseProvider {
     .then(e1 => {
       return this.getTradeHistory(moment().startOf('year').unix(), moment().endOf('year').unix(), true)
       .then(e2 => {
-        const trades = Object.values(e1).concat(Object.values(e2));
+        const trades = Object.values(e1).concat(Object.values(e2))
+          .map(t => { return {
+            action: t.your_action,
+            currency_pair: t.currency_pair,
+            price: t.price,
+            amount: t.amount,
+          }})
         const aggregate = this.agg.calculate(trades)
         // this.text = JSON.stringify(aggregate);
         const total = aggregate.reduce((a, e) => a + e.profit, 0);

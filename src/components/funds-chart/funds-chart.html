@@ -1,0 +1,15 @@
+<!-- Generated template for the FhndsChartComponent component -->
+<div>
+  <ion-card>
+    <ion-card-header ion-item>
+      <ion-card-title>{{providerName}} 資産一覧(日本円)</ion-card-title>
+      <button ion-button icon-only item-end clear color="dark" (click)="refresh()">
+        <ion-icon name="refresh"></ion-icon>
+      </button>
+      <ion-spinner item-end *ngIf="loadingFunds | async" ></ion-spinner>
+    </ion-card-header>
+    <ion-card-content>
+      <div [id]="providerName + '-chart'" [style.width.%]="100" [style.height.px]="300"></div>
+    </ion-card-content>
+  </ion-card> 
+</div>

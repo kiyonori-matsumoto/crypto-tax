@@ -18,6 +18,21 @@ import { AmChartsModule } from '@amcharts/amcharts3-angular';
 import { TradeAggregateProvider } from '../providers/trade-aggregate/trade-aggregate';
 import {ComponentsModule} from '../components/components.module'
 import { HttpModule, JsonpModule } from '@angular/http';
+import { BitflyerProvider } from '../providers/bitflyer/bitflyer';
+import { AngularFireModule } from 'angularfire2';
+import { AngularFirestoreModule } from 'angularfire2/firestore';
+import { AngularFireAuthModule } from 'angularfire2/auth';
+import { LatestPriceProvider } from '../providers/latest-price/latest-price';
+import { TaxPageModule } from '../pages/tax/tax.module';
+
+export const firebaseConfig = {
+  apiKey: "AIzaSyDUq-Sp1w1OnluZgDzBwYjUlxzf5-k8Ses",
+  authDomain: "crypto-currency-tax.firebaseapp.com",
+  databaseURL: "https://crypto-currency-tax.firebaseio.com",
+  projectId: "crypto-currency-tax",
+  storageBucket: "crypto-currency-tax.appspot.com",
+  messagingSenderId: "363305899340"
+};
 
 @NgModule({
   declarations: [
@@ -35,6 +50,9 @@ import { HttpModule, JsonpModule } from '@angular/http';
     JsonpModule,
     AmChartsModule,
     ComponentsModule,
+    AngularFireModule.initializeApp(firebaseConfig),
+    AngularFirestoreModule,
+    TaxPageModule,
   ],
   bootstrap: [IonicApp],
   entryComponents: [
@@ -52,6 +70,8 @@ import { HttpModule, JsonpModule } from '@angular/http';
     ZaifProvider,
     SecureStorage,
     TradeAggregateProvider,
+    BitflyerProvider,
+    LatestPriceProvider,
   ]
 })
 export class AppModule {}
