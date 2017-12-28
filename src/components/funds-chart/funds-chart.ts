@@ -33,6 +33,7 @@ export class FundsChartComponent implements OnInit {
     private AmCharts: AmChartsService,
   ) {
     console.log('Hello FundsChartComponent Component');
+    this.loadingFunds.subscribe(console.log);
   }
 
   ngOnInit(): void {
@@ -57,12 +58,12 @@ export class FundsChartComponent implements OnInit {
       this.AmCharts.updateChart(this.chart, () => {
         this.chart.dataProvider = data;
       })
+      this.loadingFunds.next(false);
     });
-
-    this.funds$.map(() => false).subscribe(this.loadingFunds);
   }
 
   refresh() {
+    console.log('refreshing');
     this.loadingFunds.next(true);
     this.refreshFunds.emit(true)
   }

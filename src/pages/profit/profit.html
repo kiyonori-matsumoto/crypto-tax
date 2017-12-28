@@ -1,15 +1,15 @@
 <ion-header>
     <ion-navbar>
       <ion-buttons end>
-        <button ion-button icon-only clear color="dark" [navPush]="helpPage">
+        <button ion-button icon-only clear color="light" [navPush]="helpPage">
           <ion-icon name="help-circle"></ion-icon>
         </button>
-        <button ion-button icon-only clear color="dark">
+        <button ion-button icon-only clear color="light">
           <ion-icon name="contact"></ion-icon>
         </button>
       </ion-buttons>
       <ion-title>
-        暗号通貨税金電卓
+        CryptoTax
       </ion-title>
     </ion-navbar>
   </ion-header>
@@ -25,11 +25,12 @@
       </ion-row>
     </ion-grid>
     <ion-fab bottom right>
-      <button ion-fab>
+      <button ion-fab color="secondary">
         <ion-icon name="add"></ion-icon>
       </button>
       <ion-fab-list side="top">
         <button ion-fab (click)="open('zaif')">Zaif</button>
+        <button ion-fab (click)="open('bitflyer')">Bitflyer</button>
       </ion-fab-list>
     </ion-fab>
   </ion-content>

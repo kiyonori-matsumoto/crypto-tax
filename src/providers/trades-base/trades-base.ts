@@ -58,7 +58,7 @@ export abstract class TradesBaseProvider {
       })
     } else {
       const e = d.share();
-      e.subscribe(this.fundsSubject)
+      e.subscribe(d => this.fundsSubject.next(d));
       return e.take(1).toPromise();
     }
   }

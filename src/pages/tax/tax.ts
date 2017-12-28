@@ -3,6 +3,7 @@ import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { ZaifProvider } from '../../providers/zaif/zaif';
 import { BitflyerProvider } from '../../providers/bitflyer/bitflyer';
 import { Observable } from 'rxjs';
+import { HelpPage } from '../help/help';
 
 /**
  * Generated class for the TaxPage page.
@@ -26,6 +27,8 @@ export class TaxPage {
     'bitflyer': this.bfp,
   }
   public readonly object = Object;
+
+  helpPage: HelpPage;
 
   constructor(
     public navCtrl: NavController,

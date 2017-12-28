@@ -7,7 +7,15 @@
 <ion-header>
 
   <ion-navbar>
-    <ion-title>tax</ion-title>
+    <ion-buttons end>
+      <button ion-button icon-only clear color="light" [navPush]="helpPage">
+        <ion-icon name="help-circle"></ion-icon>
+      </button>
+      <button ion-button icon-only clear color="light">
+        <ion-icon name="contact"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>CryptoTax</ion-title>
   </ion-navbar>
 
 </ion-header>
