@@ -25,6 +25,7 @@ import { AngularFireAuthModule } from 'angularfire2/auth';
 import { LatestPriceProvider } from '../providers/latest-price/latest-price';
 import { TaxPageModule } from '../pages/tax/tax.module';
 import { LoginPageModule } from '../pages/login/login.module';
+import { MarketsProvider } from '../providers/markets/markets';
 
 export const firebaseConfig = {
   apiKey: "AIzaSyDUq-Sp1w1OnluZgDzBwYjUlxzf5-k8Ses",
@@ -53,6 +54,7 @@ export const firebaseConfig = {
     ComponentsModule,
     AngularFireModule.initializeApp(firebaseConfig),
     AngularFirestoreModule,
+    AngularFireAuthModule,
     TaxPageModule,
     LoginPageModule,
   ],
@@ -74,6 +76,7 @@ export const firebaseConfig = {
     TradeAggregateProvider,
     BitflyerProvider,
     LatestPriceProvider,
+    MarketsProvider,
   ]
 })
 export class AppModule {}

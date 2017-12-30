@@ -1,4 +1,4 @@
-import {Public, V2Private} from 'zaif-promise';
+import {Public, V2Private, Leverage} from 'zaif-promise';
 import * as express from 'express';
 import * as cors from 'cors';
 import * as compression from 'compression';
@@ -55,6 +55,44 @@ app.post('/trade_history', (req, res, next) => {
     since: from,
     end: to,
     is_token: is_token,
+    count: n,
+  }).then(history => {
+    return execute(history);
+  }).catch(next);
+})
+
+app.post('/leverage_history', (req, res, next) => {
+  const leverage = new Leverage(req.body.key, req.body.secret);
+  const from = parseInt(req.body.from || 0);
+  let   to = parseInt(req.body.to || 0);
+
+  const n = 1000;
+
+  const execute = (history, history_sum = {}) => {
+    const sum = Object.assign({}, history, history_sum)
+    const len = Object.keys(history).length
+    if (len === n) {
+      return leverage.get_positions({
+        type: 'margin',
+        end: to,
+        from_id: parseInt(Object.keys(history)[len-1]),
+        count: n
+      }).then(h => {
+        return execute(h, sum);
+      })
+    } else {
+      res.send(sum).end();
+      return sum;
+    }
+  }
+
+  if(!to) {
+    to = moment().endOf('year').unix();
+  }
+  return leverage.get_positions({
+    type: 'margin',
+    since: from,
+    end: to,
     count: n,
   }).then(history => {
     return execute(history);

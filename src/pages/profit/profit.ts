@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams, ModalController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, ModalController, AlertController } from 'ionic-angular';
 import { AmChart, AmChartsService } from '@amcharts/amcharts3-angular';
 import { HelpPage } from '../help/help';
 import { Subject } from 'rxjs';
@@ -41,25 +41,24 @@ export class ProfitPage {
     private AmCharts: AmChartsService,
     private agg: TradeAggregateProvider,
     private modal: ModalController,
+    private alert: AlertController,
   ) {
-    const token = this.zp.restoreTokens()
-    if (token) {
-      this.connectZaif()
-    }
-    this.loadingFunds.next(false);
+    Object.entries(this.PROVIDERS).forEach(([k, v]) => {
+      const token = v.restoreTokens();
+      if(token) {
+        this.connect(k, v)
+      }
+    })
   }
 
-  public connectZaif() {
-    // this.zp.saveTokens(this.zaif_key, this.zaif_secret)
+  public connect(provider: string, p: TradesBaseProvider) {
     setTimeout(() => {
-      this.zp.agg$
-      .do(console.log)
-      .subscribe(data => {
-        this.totalCryptoProfit = data.find(e => e.currency_pair === 'Total').profit;
-        this.aggregate = data;
-      })
 
-      this.zp.connect();
+      p.connect().catch(e => {
+        console.log('test', e);
+        this.alert.create({title: 'Error', message: e.message, buttons: ['Ok']}).present();
+        return false;
+      })
       
     }, 100);
   }
@@ -75,9 +74,7 @@ export class ProfitPage {
       if (data) {
         console.log(data)
         p.saveTokens(data.key, data.secret)
-        this.refreshFunds(p);
-        this.refreshAgg(p);
-        p.connect();
+        this.connect(provider, p);
       }
     })
     m.present();

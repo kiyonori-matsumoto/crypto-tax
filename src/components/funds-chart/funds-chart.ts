@@ -3,6 +3,7 @@ import { Subject } from 'rxjs/Subject';
 import { AmChart, AmChartsService } from '@amcharts/amcharts3-angular'
 import { Observable } from 'rxjs';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { AfterViewInit, OnDestroy } from '@angular/core/src/metadata/lifecycle_hooks';
 
 /**
  * Generated class for the FhndsChartComponent component.
@@ -14,9 +15,9 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
   selector: 'funds-chart',
   templateUrl: 'funds-chart.html'
 })
-export class FundsChartComponent implements OnInit {
+export class FundsChartComponent implements AfterViewInit, OnDestroy {
 
-  loadingFunds: Subject<boolean> = new BehaviorSubject(false);
+  loadingFunds: Subject<boolean> = new BehaviorSubject(true);
 
   @Input()
   funds$: Observable<any>;
@@ -36,7 +37,7 @@ export class FundsChartComponent implements OnInit {
     this.loadingFunds.subscribe(console.log);
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.chart = this.AmCharts.makeChart(`${this.providerName}-chart`, {
       type: 'pie',
       theme: 'light',
@@ -60,6 +61,12 @@ export class FundsChartComponent implements OnInit {
       })
       this.loadingFunds.next(false);
     });
+  }
+
+  ngOnDestroy() {
+    if (this.chart) {
+      this.AmCharts.destroyChart(this.chart);
+    }
   }
 
   refresh() {

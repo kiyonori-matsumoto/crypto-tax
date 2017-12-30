@@ -10,6 +10,8 @@ import * as Lock from 'async-lock';
 import * as firebase from 'firebase'
 import { AngularFirestore } from 'angularfire2/firestore';
 import { LatestPriceProvider, ILatestPrice } from '../latest-price/latest-price';
+import { GetPositionResponse } from 'zaif-promise';
+import * as dl from 'datalib'
 
 /*
   Generated class for the ZaifProvider provider.
@@ -44,37 +46,6 @@ export class ZaifProvider extends TradesBaseProvider {
   ) {
     super()
     console.log('Hello ZaifProvider Provider');
-    // this.connect();
-  }
-
-  saveTokens(key: string, secret: string) {
-    // if (!this.storage) {
-    //   throw "storage is not";
-    // }
-    this.key = key;
-    this.secret = secret;
-    // this.z.set_credentials(key, secret);
-    // return this.storage.set('zaif_key', JSON.stringify({key, secret}))
-    return localStorage.setItem('zaif_key', JSON.stringify({key, secret}));
-  }
-
-  restoreTokens() {
-    // if (!this.storage) {
-      
-    // }
-    // return this.storage.get('zaif_key')
-    // .then(keyStr => JSON.parse(keyStr))
-    // .then(key => {
-    //   zaif.setCredentials(key.key, key.secret);
-    //   return key;
-    // })
-    const tokens = JSON.parse(localStorage.getItem('zaif_key'));
-    if (tokens) {
-      // this.z.set_credentials(tokens.key, tokens.secret);
-      this.key = tokens.key;
-      this.secret = tokens.secret;
-    }
-    return tokens;
   }
 
   getInfo() {
@@ -94,6 +65,16 @@ export class ZaifProvider extends TradesBaseProvider {
         from, to, is_token
       }).toPromise();
     });
+  }
+
+  getLeverageHistory(from: number = 0, to: number = 0, type: string = 'margin') {
+    return this.lock.acquire(this.key, () => {
+      return this.http.post(this.URL_PRIVATE + '/leverage_history', {
+        key: this.key,
+        secret: this.secret,
+        from, to, type
+      }).toPromise();
+    })
   }
 
   getFundsAsJpy(update: boolean = false) {
@@ -147,20 +128,44 @@ export class ZaifProvider extends TradesBaseProvider {
     .then(e1 => {
       return this.getTradeHistory(moment().startOf('year').unix(), moment().endOf('year').unix(), true)
       .then(e2 => {
-        const trades = Object.values(e1).concat(Object.values(e2))
+        return this.aggregateLeverage().then(e3 => {
+          const trades = Object.values(e1).concat(Object.values(e2))
           .map(t => { return {
             action: t.your_action,
             currency_pair: t.currency_pair,
             price: t.price,
             amount: t.amount,
           }})
-        const aggregate = this.agg.calculate(trades)
-        // this.text = JSON.stringify(aggregate);
-        const total = aggregate.reduce((a, e) => a + e.profit, 0);
-        aggregate.push({currency_pair: 'Total', profit: total})
-        localStorage.setItem('zaif_trades', JSON.stringify(aggregate));
-        return aggregate;
+          const aggregate = this.agg.calculate(trades).concat(e3);
+          const total = aggregate.reduce((a, e) => a + e.profit, 0);
+          aggregate.push({currency_pair: 'Total', profit: total})
+          localStorage.setItem('zaif_trades', JSON.stringify(aggregate));
+          console.log(aggregate);
+          return aggregate;
+        })
       })
     })
   }
+
+  private aggregateLeverage(update = false) {
+    return this.getLeverageHistory(moment().startOf('year').unix(), moment().endOf('year').unix(), 'margin')
+    .then(e => {
+      const trades = Object.values(e)
+        .filter(t => t.close_avg && t.amount === t.close_done)
+        .map((t: GetPositionResponse) => { return {
+          currency_pair: `fx_${t.currency_pair}`,
+          profit: t.action === 'ask' ? t.price_avg * t.amount_done - t.close_avg * t.close_done :
+            t.close_avg * t.close_done - t.price_avg * t.amount_done
+        }})
+      const aggregate = trades.reduce((a, e) => {
+        a[e.currency_pair] = a[e.currency_pair] || 0;
+        a[e.currency_pair] += e.profit;
+        return a;
+      }, {})
+      return Object.entries(aggregate).map(([k, v]) => { return {
+        currency_pair: k,
+        profit: v,
+      }})
+    })
+  } 
 }

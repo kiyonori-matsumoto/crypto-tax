@@ -7,6 +7,7 @@ import { HomePage } from '../pages/home/home';
 import { ListPage } from '../pages/list/list';
 import { TabsPage } from '../pages/tabs/tabs';
 import { LoginPage } from '../pages/login/login';
+import { AngularFireAuth } from 'angularfire2/auth';
 
 @Component({
   templateUrl: 'app.html'
@@ -18,7 +19,12 @@ export class MyApp {
 
   pages: Array<{title: string, component: any}>;
 
-  constructor(public platform: Platform, public statusBar: StatusBar, public splashScreen: SplashScreen) {
+  constructor(
+    public platform: Platform,
+    public statusBar: StatusBar,
+    public splashScreen: SplashScreen,
+    private afAuth: AngularFireAuth,
+  ) {
     this.initializeApp();
 
     // used for an example of ngFor and navigation
@@ -35,6 +41,18 @@ export class MyApp {
       // Here you can do any higher level native things you might need.
       this.statusBar.styleDefault();
       this.splashScreen.hide();
+
+
+      this.checkAuthStatus();
+      this.afAuth.authState.subscribe(u => console.log(u));
+    });
+  }
+
+  checkAuthStatus() {
+    this.afAuth.authState.take(1).subscribe(user => {
+      if (!user) {
+        this.nav.setRoot(LoginPage);
+      }
     });
   }
 

@@ -53,7 +53,6 @@ export class HomePage {
       if(token) {
         this.connect(k, v)
       }
-      this.loadingFunds.next(false);
     })
   }
   public connect(provider: string, p: TradesBaseProvider) {
@@ -79,14 +78,6 @@ export class HomePage {
       if (data) {
         console.log(data)
         p.saveTokens(data.key, data.secret)
-        // this.refreshFunds(p);
-        p.updateFundsAsJpy()
-        .catch(e => {
-          console.log(e);
-          this.alert.create({title: 'Error', message: e.message, buttons: ['Ok']}).present();
-          return false;
-        })
-        // this.refreshAgg(p);
         this.connect(provider, p);
       }
     })

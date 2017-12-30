@@ -13,6 +13,9 @@ import { AggregateInterface } from '../trade-aggregate/trade-aggregate';
 @Injectable()
 export abstract class TradesBaseProvider {
 
+  key    = '';
+  secret = '';
+
   constructor() {
     console.log('Hello TradesBaseProvider Provider');
   }
@@ -40,9 +43,23 @@ export abstract class TradesBaseProvider {
   public readonly agg$: Observable<AggregateInterface[]> = 
     this.aggSubject.publishReplay(1).refCount();
 
+  public saveTokens(key: string, secret: string) {
+    this.key = key;
+    this.secret = secret;
+    return localStorage.setItem(`${this.name}_key`, JSON.stringify({key, secret}));
+  }
+
+  public restoreTokens() {
+    const tokens = JSON.parse(localStorage.getItem(`${this.name}_key`))
+    if (tokens) {
+      this.key = tokens.key || '';
+      this.secret = tokens.secret || '';
+    }
+    return tokens;
+  }
+
   public abstract name: string;
-  public abstract saveTokens(key: string, secret: string);
-  public abstract restoreTokens();
+
   public abstract getFundsAsJpy(update: boolean):
     Promise<FundsInterface[]> | Observable<FundsInterface[]>;
   public abstract aggregateTradeHistory(update: boolean):
@@ -72,7 +89,7 @@ export abstract class TradesBaseProvider {
       })
     } else {
       const e = d.share();
-      e.subscribe(this.aggSubject)
+      e.subscribe(d => this.aggSubject.next(d));
       return e.take(1).toPromise();
     }
   }

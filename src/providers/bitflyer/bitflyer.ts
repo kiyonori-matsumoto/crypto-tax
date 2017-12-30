@@ -38,21 +38,6 @@ export class BitflyerProvider extends TradesBaseProvider {
     console.log('Hello BitflyerProvider Provider');
   }
 
-  saveTokens(key: string, secret: string) {
-    this.key = key;
-    this.secret = secret;
-    return localStorage.setItem('bitflyer_key', JSON.stringify({key, secret}));
-  }
-
-  restoreTokens() {
-    const tokens = JSON.parse(localStorage.getItem('bitflyer_key'));
-    if (tokens) {
-      this.key = tokens.key;
-      this.secret = tokens.secret;
-    }
-    return tokens;
-  }
-  
   getInfo() {
     // return this.z.get_info();
     return this.lock.acquire(this.key, () => {
@@ -157,18 +142,5 @@ export class BitflyerProvider extends TradesBaseProvider {
       localStorage.setItem('bitflyer_trades', JSON.stringify(aggregate));
       return aggregate;
     })
-    // return this.getTradeHistory('BTC_JPY', moment().startOf('year').unix(), moment().endOf('year').unix())
-    // .then(e1 => {
-    //   return this.getTradeHistory('BTC_JPY', moment().startOf('year').unix(), moment().endOf('year').unix())
-    //   .then(e2 => {
-    //     const trades = Object.values(e1).concat(Object.values(e2));
-    //     const aggregate = this.agg.calculate(trades)
-    //     // this.text = JSON.stringify(aggregate);
-    //     const total = aggregate.reduce((a, e) => a + e.profit, 0);
-    //     aggregate.push({currency_pair: 'Total', profit: total})
-    //     localStorage.setItem('bitflyer_trades', JSON.stringify(aggregate));
-    //     return aggregate;
-    //   })
-    // })
   }
 }
