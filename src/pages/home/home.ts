@@ -93,7 +93,10 @@ export class HomePage {
       if (data) {
         console.log(data)
         p.saveTokens(data.key, data.secret)
-        this.connect(provider, p);
+        .then(() => {
+          this.connect(provider, p);
+          this.refresh();
+        })
       }
     })
     m.present();
