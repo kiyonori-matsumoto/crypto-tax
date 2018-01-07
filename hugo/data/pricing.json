@@ -1,0 +1,22 @@
+[
+    {
+        "name": "Free",
+        "link": "signup/free",
+        "linkText": "開始",
+        "features": [
+            {
+                "name": "取引所毎のポートフォリオ管理",
+                "description": "取引所毎のポートフォリオ管理"
+            },
+            {
+                "name": "取引所毎の収支計算",
+                "description": "取引所毎の収支計算"
+            },
+            {
+                "name": "税金の概算",
+                "description": "税金の概算"
+            }
+        ]
+    }
+
+]

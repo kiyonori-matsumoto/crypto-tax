@@ -10,6 +10,7 @@
     </ion-card-header>
     <ion-card-content>
       <div [id]="providerName + '-chart'" [style.width.%]="100" [style.height.px]="300"></div>
+      <ion-note *ngIf="lastUpdateAt" >最終更新時間: {{lastUpdateAt | time}}</ion-note>
     </ion-card-content>
   </ion-card> 
 </div>

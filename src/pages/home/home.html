@@ -12,19 +12,22 @@
       </button>
     </ion-buttons>
     <ion-title>
-      CryptoTax
+      Crypto Tax β
     </ion-title>
   </ion-navbar>
 </ion-header>
 
-<ion-content padding>
+<ion-content>
   <h2>資産一覧</h2>
   <ion-grid>
     <ion-row>
-      <ion-col col-xl-4 col-lg-6 *ngFor="let k of object.keys(PROVIDERS)">
+      <!-- <ion-col col-xl-4 col-lg-6 *ngFor="let k of object.keys(PROVIDERS)">
         <div *ngIf="PROVIDERS[k].key">
           <funds-chart [funds$]="PROVIDERS[k].funds$" (refreshFunds)="PROVIDERS[k].updateFundsAsJpy()" [providerName]="k"></funds-chart>
-        </div> 
+        </div>  
+      </ion-col> -->
+      <ion-col col-xl-4 col-lg-6 *ngFor="let d of (funds$ | async)">
+        <funds-chart [funds]="d[1]" [providerName]="d[0]" (refreshFunds)="refresh()" [lastUpdateAt]="d[2]"></funds-chart>
       </ion-col>
     </ion-row>
   </ion-grid>

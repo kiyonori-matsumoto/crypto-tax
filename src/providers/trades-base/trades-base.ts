@@ -3,6 +3,9 @@ import { Observable } from 'rxjs';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/publishReplay';
 import { AggregateInterface } from '../trade-aggregate/trade-aggregate';
+import * as moment from 'moment';
+import { AngularFirestore } from 'angularfire2/firestore';
+import { AngularFireAuth } from 'angularfire2/auth';
 
 /*
   Generated class for the TradesBaseProvider provider.
@@ -16,12 +19,15 @@ export abstract class TradesBaseProvider {
   key    = '';
   secret = '';
 
-  constructor() {
+  constructor(
+    protected afs: AngularFirestore,
+    protected afAuth: AngularFireAuth,
+  ) {
     console.log('Hello TradesBaseProvider Provider');
   }
 
-  public connect() {
-    const token = this.restoreTokens();
+  public async connect() {
+    const token = await this.restoreTokens();
     if (token) {
       if (!token.key || !token.secret) {
         return Promise.reject(new Error('key and secret must be provided'));
@@ -46,23 +52,30 @@ export abstract class TradesBaseProvider {
   public saveTokens(key: string, secret: string) {
     this.key = key;
     this.secret = secret;
-    return localStorage.setItem(`${this.name}_key`, JSON.stringify({key, secret}));
+    localStorage.setItem(`${this.name}_key`, JSON.stringify({key, secret}));
+    const uid = this.afAuth.auth.currentUser.uid;
+    const doc: any = {}
+    doc[this.name] = {key, secret};
+    return this.afs.collection('users').doc(uid).set(doc, {merge: true});
   }
 
-  public restoreTokens() {
-    const tokens = JSON.parse(localStorage.getItem(`${this.name}_key`))
-    if (tokens) {
-      this.key = tokens.key || '';
-      this.secret = tokens.secret || '';
+  public async restoreTokens() {
+    const user = await this.afAuth.authState.take(1).toPromise();
+    const token = user ? await this.afs.collection('users').doc<{[id: string]: {key: string, secret: string}}>(user.uid).valueChanges().take(1).toPromise() : {};
+    if (token && token[this.name]) {
+      this.key = token[this.name].key;
+      this.secret = token[this.name].secret;
+      return token[this.name];
+    } else {
+      return null;
     }
-    return tokens;
   }
 
   public abstract name: string;
 
   public abstract getFundsAsJpy(update: boolean):
     Promise<FundsInterface[]> | Observable<FundsInterface[]>;
-  public abstract aggregateTradeHistory(update: boolean):
+  public abstract aggregateTradeHistory(update?: boolean, start?: moment.Moment, end?: moment.Moment):
     Promise<AggregateInterface[]> | Observable<AggregateInterface[]>;
 
   public updateFundsAsJpy(update = true): Promise<any> {
@@ -81,7 +94,7 @@ export abstract class TradesBaseProvider {
   }
 
   public updateAggregateHistory(update = true): Promise<any> {
-    const d = this.aggregateTradeHistory(update)
+    const d = this.aggregateTradeHistory(update, moment().year(2017).startOf('year'), moment().year(2017).endOf('year'));
     if (d instanceof Promise) {
       return d.then(e => {
         this.aggSubject.next(e);

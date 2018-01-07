@@ -3,11 +3,10 @@ import { ErrorHandler, NgModule } from '@angular/core';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 
 import { MyApp } from './app.component';
-import { HomePage } from '../pages/home/home';
+import { PipesModule } from '../pipes/pipes.module';
 import { ListPage } from '../pages/list/list';
 import { HelpPage } from '../pages/help/help';
-import { TabsPage } from '../pages/tabs/tabs';
-import { ProfitPage } from '../pages/profit/profit';
+// import { ProfitPage } from '../pages/profit/profit';
 
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
@@ -23,9 +22,14 @@ import { AngularFireModule } from 'angularfire2';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 import { LatestPriceProvider } from '../providers/latest-price/latest-price';
+import { HomePageModule } from '../pages/home/home.module';
+import { ProfitPageModule } from '../pages/profit/profit.module';
+import { TabsPageModule } from '../pages/tabs/tabs.module';
 import { TaxPageModule } from '../pages/tax/tax.module';
 import { LoginPageModule } from '../pages/login/login.module';
 import { MarketsProvider } from '../providers/markets/markets';
+import { GoogleAnalytics } from '@ionic-native/google-analytics';
+import { GtagProvider } from '../providers/gtag/gtag';
 
 export const firebaseConfig = {
   apiKey: "AIzaSyDUq-Sp1w1OnluZgDzBwYjUlxzf5-k8Ses",
@@ -39,11 +43,9 @@ export const firebaseConfig = {
 @NgModule({
   declarations: [
     MyApp,
-    HomePage,
     ListPage,
     HelpPage,
-    TabsPage,
-    ProfitPage,
+    // ProfitPage,
   ],
   imports: [
     BrowserModule,
@@ -55,28 +57,32 @@ export const firebaseConfig = {
     AngularFireModule.initializeApp(firebaseConfig),
     AngularFirestoreModule,
     AngularFireAuthModule,
+    TabsPageModule,
+    HomePageModule,
     TaxPageModule,
     LoginPageModule,
+    ProfitPageModule,
+    PipesModule,
   ],
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
-    HomePage,
     ListPage,
     HelpPage,
-    TabsPage,
-    ProfitPage,
+    // ProfitPage,
   ],
   providers: [
     StatusBar,
     SplashScreen,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
+    GoogleAnalytics,
     ZaifProvider,
     SecureStorage,
     TradeAggregateProvider,
     BitflyerProvider,
     LatestPriceProvider,
     MarketsProvider,
+    GtagProvider,
   ]
 })
 export class AppModule {}

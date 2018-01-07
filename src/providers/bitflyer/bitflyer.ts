@@ -8,6 +8,7 @@ import * as moment from 'moment';
 import * as firebase from 'firebase'
 import { AngularFirestore } from 'angularfire2/firestore';
 import { LatestPriceProvider } from '../latest-price/latest-price';
+import { AngularFireAuth } from 'angularfire2/auth';
 
 /*
   Generated class for the BitflyerProvider provider.
@@ -30,18 +31,19 @@ export class BitflyerProvider extends TradesBaseProvider {
 
   constructor(
     public http: HttpClient,
-    private afs: AngularFirestore,
-    private agg: TradeAggregateProvider,
-    private lpp: LatestPriceProvider,
+    protected afs: AngularFirestore,
+    protected agg: TradeAggregateProvider,
+    protected lpp: LatestPriceProvider,
+    protected afAuth: AngularFireAuth,
   ) {
-    super();
+    super(afs, afAuth);
     console.log('Hello BitflyerProvider Provider');
   }
 
   getInfo() {
     // return this.z.get_info();
     return this.lock.acquire(this.key, () => {
-      return this.http.post(this.URL_PRIVATE +  '/info', {
+      return this.http.post(this.URL_PRIVATE + '/info', {
         key: this.key,
         secret: this.secret
       }).toPromise();
@@ -50,8 +52,8 @@ export class BitflyerProvider extends TradesBaseProvider {
 
   getLatestPrice(currency: string) {
     return this.afs.collection('latest_prices').doc(currency.toUpperCase()).valueChanges()
-    .take(1)
-    .toPromise();
+      .take(1)
+      .toPromise();
   }
 
   getTradeHistory(currency_pair: string, from: number = 0, to: number = 0) {
@@ -64,7 +66,7 @@ export class BitflyerProvider extends TradesBaseProvider {
     });
   }
 
-  
+
   getFundsAsJpy(update: boolean = false) {
     if ((localStorage.getItem('bitflyer_funds')) && !update) {
       const d = localStorage.getItem('bitflyer_funds');
@@ -72,75 +74,74 @@ export class BitflyerProvider extends TradesBaseProvider {
     }
 
     return this.lpp.latestPrice$
-    .mergeMap<any, FundsInterface[]>(latest_prices => {
-      return this.getInfo()
-      .then((info: any) => {
-        return Promise.all(info
-          .map(e => {
-            let jpy_async = null;
-            if (! e.currency_code.match(/jpy/i)) {
-              return (latest_prices &&
-                latest_prices.find(f => f.symbol === e.currency_code.toUpperCase()) &&
-                latest_prices.find(f => f.symbol === e.currency_code.toUpperCase()).price * e.amount)
-                || 0;
-              // return this.getLatestPrice(e[0])
-              // .then((f: any) => f.price * e.amount || 0)
-            } else {
-              return e.amount;
-            }
+      .mergeMap<any, FundsInterface[]>(latest_prices => {
+        return this.getInfo()
+          .then((info: any) => {
+            return Promise.all(info
+              .map(e => {
+                let jpy_async = null;
+                if (!e.currency_code.match(/jpy/i)) {
+                  return (latest_prices &&
+                    latest_prices.find(f => f.symbol === e.currency_code.toUpperCase()) &&
+                    latest_prices.find(f => f.symbol === e.currency_code.toUpperCase()).price * e.amount)
+                    || 0;
+                  // return this.getLatestPrice(e[0])
+                  // .then((f: any) => f.price * e.amount || 0)
+                } else {
+                  return e.amount;
+                }
+              })
+            )
+              .then((prices: any[]) => {
+                const ret = info
+                  .map((e, idx) => {
+                    const price = <number>prices[idx];
+                    return {
+                      currency: e.currency_code,
+                      price: Math.round(price),
+                    }
+                  }).sort((a, b) => b.price - a.price)
+
+                localStorage.setItem('bitflyer_funds', JSON.stringify(ret));
+
+                return ret;
+              })
           })
-        )
-        .then((prices: any[]) => {
-          const ret = info
-          .map((e, idx) => {
-            const price = <number>prices[idx];
-            return {
-              currency: e.currency_code,
-              price: Math.round(price),
-            }
-          }).sort((a, b) => b.price - a.price)
-          
-          localStorage.setItem('bitflyer_funds', JSON.stringify(ret));
-          
-          return ret;
-        })
       })
-    })
   }
 
-  aggregateTradeHistory(update = false): Promise<AggregateInterface[]> {
+  aggregateTradeHistory(update = false, start = moment().startOf('year'), end = moment().endOf('year')): Promise<AggregateInterface[]> {
     if (localStorage.getItem('bitflyer_trades') && !update) {
       const d = localStorage.getItem('bitflyer_trades');
       return Promise.resolve(JSON.parse(d));
     }
     return Promise.all(this.MARKETS.map(market => {
-      return this.getTradeHistory(market, moment().startOf('year').unix(),
-      moment().endOf('year').unix())
-      .then(data => data.map(f => {
-        f.currency_pair = market.toLowerCase()
-        return f
-      }))
+      return this.getTradeHistory(market, start.unix(), end.unix())
+        .then(data => data.map(f => {
+          f.currency_pair = market.toLowerCase()
+          return f
+        }))
     }))
-    .then(execution_array => {
-      const trades = [].concat(...execution_array)
-        .sort((t1, t2) => t1.id < t2.id ? -1 : 1)
-        .map(t => {
-          return {
-            action: t.side === 'BUY' ? 'bid' : 'ask',
-            currency_pair: t.currency_pair,
-            price: t.price,
-            amount: t.size,
-          }
+      .then(execution_array => {
+        const trades = [].concat(...execution_array)
+          .sort((t1, t2) => t1.id < t2.id ? -1 : 1)
+          .map(t => {
+            return {
+              action: t.side === 'BUY' ? 'bid' : 'ask',
+              currency_pair: t.currency_pair,
+              price: t.price,
+              amount: t.size,
+            }
+          })
+        console.log(trades)
+        const aggregate = this.agg.calculate(trades).map(e => {
+          e.profit = e.profit;
+          return e;
         })
-      console.log(trades)
-      const aggregate = this.agg.calculate(trades).map(e => {
-        e.profit = e.profit;
-        return e;
+        const total = aggregate.reduce((a, e) => a + e.profit, 0);
+        aggregate.push({ currency_pair: 'Total', profit: total })
+        localStorage.setItem('bitflyer_trades', JSON.stringify(aggregate));
+        return aggregate;
       })
-      const total = aggregate.reduce((a, e) => a + e.profit, 0);
-      aggregate.push({currency_pair: 'Total', profit: total})
-      localStorage.setItem('bitflyer_trades', JSON.stringify(aggregate));
-      return aggregate;
-    })
   }
 }

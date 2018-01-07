@@ -4,6 +4,8 @@ import { ZaifProvider } from '../../providers/zaif/zaif';
 import { BitflyerProvider } from '../../providers/bitflyer/bitflyer';
 import { Observable } from 'rxjs';
 import { HelpPage } from '../help/help';
+import { GoogleAnalytics } from '@ionic-native/google-analytics';
+import { GtagProvider } from '../../providers/gtag/gtag';
 
 /**
  * Generated class for the TaxPage page.
@@ -35,6 +37,7 @@ export class TaxPage {
     public navParams: NavParams,
     public zp: ZaifProvider,
     public bfp: BitflyerProvider,
+    private gtag: GtagProvider,
   ) {
     const d = [{currency_pair: 'Total', profit: 0}]
     Observable.combineLatest(
@@ -46,6 +49,7 @@ export class TaxPage {
 
   ionViewDidLoad() {
     console.log('ionViewDidLoad TaxPage');
+    this.gtag.pageView('/tax');
   }
 
   totalProfit() {

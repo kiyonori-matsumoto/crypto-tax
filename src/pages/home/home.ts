@@ -14,17 +14,20 @@ import { HelpPage } from '../help/help';
 import { BitflyerProvider } from '../../providers/bitflyer/bitflyer';
 import { TradesBaseProvider } from '../../providers/trades-base/trades-base';
 import { AlertController } from 'ionic-angular/components/alert/alert-controller';
+import { IonicPage } from 'ionic-angular/navigation/ionic-page';
+import { GoogleAnalytics } from '@ionic-native/google-analytics';
+import { GtagProvider } from '../../providers/gtag/gtag';
+import { AngularFirestore } from 'angularfire2/firestore';
+import { AngularFireAuth } from 'angularfire2/auth';
+import { HttpClient } from '@angular/common/http';
 
+@IonicPage()
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html'
 })
 export class HomePage {
 
-  // zaif_key: string
-  // zaif_secret: string;
-  // zaif_funds: any = null;
-  text: string
   chart: AmChart;
   aggregate: any[] = []
   helpPage = HelpPage;
@@ -38,6 +41,9 @@ export class HomePage {
     'bitflyer': this.bfp,
   }
   public readonly object = Object;
+  public readonly observable = Observable;
+
+  public funds$ : Observable<any[]>;
 
   constructor(
     public navCtrl: NavController,
@@ -47,6 +53,10 @@ export class HomePage {
     private agg: TradeAggregateProvider,
     private modal: ModalController,
     private alert: AlertController,
+    private gtag: GtagProvider,
+    private afs: AngularFirestore,
+    private afAuth: AngularFireAuth,
+    private http: HttpClient,
   ) {
     Object.entries(this.PROVIDERS).forEach(([k, v]) => {
       const token = v.restoreTokens();
@@ -54,7 +64,12 @@ export class HomePage {
         this.connect(k, v)
       }
     })
+    console.log(gtag);
+    this.gtag.pageView('/home');
+    this.funds$ = this.afAuth.authState.filter(u => !!u).map(u => u.uid)
+      .mergeMap(uid => this.afs.collection('users').doc(uid).collection('balance', ref => ref.orderBy('time', 'desc').limit(1)).valueChanges()).map(e => Object.entries(e[0]).filter(e => e[0] !== 'time').map(g => g.concat(Object.entries(e[0]).find(f => f[0] === 'time')[1])));
   }
+
   public connect(provider: string, p: TradesBaseProvider) {
     setTimeout(() => {
 
@@ -82,5 +97,10 @@ export class HomePage {
       }
     })
     m.present();
+  }
+
+  refresh() {
+    return this.http.post('https://us-central1-crypto-currency-tax.cloudfunctions.net/collect/update', 
+    {uid: this.afAuth.auth.currentUser.uid}).subscribe(() => console.log('finish update'));
   }
 }

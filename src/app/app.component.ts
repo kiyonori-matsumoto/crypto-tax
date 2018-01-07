@@ -3,11 +3,12 @@ import { Nav, Platform } from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 
-import { HomePage } from '../pages/home/home';
 import { ListPage } from '../pages/list/list';
-import { TabsPage } from '../pages/tabs/tabs';
+// import { TabsPage } from '../pages/tabs/tabs';
 import { LoginPage } from '../pages/login/login';
 import { AngularFireAuth } from 'angularfire2/auth';
+
+import { GoogleAnalytics } from '@ionic-native/google-analytics'
 
 @Component({
   templateUrl: 'app.html'
@@ -15,7 +16,7 @@ import { AngularFireAuth } from 'angularfire2/auth';
 export class MyApp {
   @ViewChild(Nav) nav: Nav;
 
-  rootPage: any = TabsPage; //HomePage;
+  rootPage: any = 'TabsPage'; //HomePage;
 
   pages: Array<{title: string, component: any}>;
 
@@ -24,12 +25,13 @@ export class MyApp {
     public statusBar: StatusBar,
     public splashScreen: SplashScreen,
     private afAuth: AngularFireAuth,
+    private ga: GoogleAnalytics,
   ) {
     this.initializeApp();
 
     // used for an example of ngFor and navigation
     this.pages = [
-      { title: 'Home', component: HomePage },
+      { title: 'Home', component: 'HomePage' },
       { title: 'List', component: ListPage }
     ];
 
@@ -44,7 +46,17 @@ export class MyApp {
 
 
       this.checkAuthStatus();
-      this.afAuth.authState.subscribe(u => console.log(u));
+      
+      // if (this.platform.is('cordova')) {
+      //   this.afAuth.authState.map(e => e ? e.uid : '')
+      //   .subscribe(uid => {
+      //     this.ga.setUserId(uid);
+      //   })
+      //   this.ga.startTrackerWithId('UA-80739523-4')
+      //   .then(() => {
+      //     console.log('start tracking');
+      //   })
+      // }
     });
   }
 

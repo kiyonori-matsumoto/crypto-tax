@@ -10,6 +10,7 @@ import * as moment from 'moment';
 import { KeyRegistrationComponent } from '../../components/key-registration/key-registration';
 import { TradesBaseProvider } from '../../providers/trades-base/trades-base';
 import { BitflyerProvider } from '../../providers/bitflyer/bitflyer';
+import { GtagProvider } from '../../providers/gtag/gtag';
 /**
  * Generated class for the ProfitPage page.
  *
@@ -17,6 +18,7 @@ import { BitflyerProvider } from '../../providers/bitflyer/bitflyer';
  * Ionic pages and navigation.
  */
 
+@IonicPage()
 @Component({
   selector: 'page-profit',
   templateUrl: 'profit.html',
@@ -27,6 +29,7 @@ export class ProfitPage {
   loadingFunds: Subject<boolean> = new Subject();
   totalCryptoProfit: number = 0;
   incomes = {miscellaneous: 0, other: 0}
+  year = '2017';
 
   public readonly PROVIDERS = {
     'zaif': this.zp,
@@ -42,13 +45,15 @@ export class ProfitPage {
     private agg: TradeAggregateProvider,
     private modal: ModalController,
     private alert: AlertController,
+    private gtag: GtagProvider,
   ) {
-    Object.entries(this.PROVIDERS).forEach(([k, v]) => {
-      const token = v.restoreTokens();
+    Object.entries(this.PROVIDERS).forEach(async ([k, v]) => {
+      const token = await v.restoreTokens();
       if(token) {
         this.connect(k, v)
       }
     })
+    this.gtag.pageView('/profit');
   }
 
   public connect(provider: string, p: TradesBaseProvider) {

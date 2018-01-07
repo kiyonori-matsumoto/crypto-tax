@@ -12,6 +12,7 @@ import { AngularFirestore } from 'angularfire2/firestore';
 import { LatestPriceProvider, ILatestPrice } from '../latest-price/latest-price';
 import { GetPositionResponse } from 'zaif-promise';
 import * as dl from 'datalib'
+import { AngularFireAuth } from 'angularfire2/auth';
 
 /*
   Generated class for the ZaifProvider provider.
@@ -39,12 +40,13 @@ export class ZaifProvider extends TradesBaseProvider {
   constructor(
     public http: HttpClient,
     public jsonp: Jsonp,
-    private secureStorage: SecureStorage,
-    private afs: AngularFirestore,
-    private agg: TradeAggregateProvider,
-    private lpp: LatestPriceProvider,
+    protected secureStorage: SecureStorage,
+    protected afs: AngularFirestore,
+    protected agg: TradeAggregateProvider,
+    protected lpp: LatestPriceProvider,
+    protected afAuth: AngularFireAuth,
   ) {
-    super()
+    super(afs, afAuth)
     console.log('Hello ZaifProvider Provider');
   }
 
@@ -119,16 +121,16 @@ export class ZaifProvider extends TradesBaseProvider {
     })
   }
 
-  aggregateTradeHistory(update = false): Promise<AggregateInterface[]> {
+  aggregateTradeHistory(update = false, start = moment().startOf('year'), end = moment().endOf('year')): Promise<AggregateInterface[]> {
     if (localStorage.getItem('zaif_trades') && !update) {
       const d = localStorage.getItem('zaif_trades');
       return Promise.resolve(JSON.parse(d));
     }
-    return this.getTradeHistory(moment().startOf('year').unix(), moment().endOf('year').unix(), false)
+    return this.getTradeHistory(start.unix(), end.unix(), false)
     .then(e1 => {
-      return this.getTradeHistory(moment().startOf('year').unix(), moment().endOf('year').unix(), true)
+      return this.getTradeHistory(start.unix(), end.unix(), true)
       .then(e2 => {
-        return this.aggregateLeverage().then(e3 => {
+        return this.aggregateLeverage(update, start, end).then(e3 => {
           const trades = Object.values(e1).concat(Object.values(e2))
           .map(t => { return {
             action: t.your_action,
@@ -147,8 +149,8 @@ export class ZaifProvider extends TradesBaseProvider {
     })
   }
 
-  private aggregateLeverage(update = false) {
-    return this.getLeverageHistory(moment().startOf('year').unix(), moment().endOf('year').unix(), 'margin')
+  private aggregateLeverage(update = false, start = moment().startOf('year'), end = moment().endOf('year')) {
+    return this.getLeverageHistory(start.unix(), end.unix(), 'margin')
     .then(e => {
       const trades = Object.values(e)
         .filter(t => t.close_avg && t.amount === t.close_done)

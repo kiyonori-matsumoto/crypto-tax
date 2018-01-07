@@ -1,0 +1,12 @@
+baseURL = "http://example.org/"
+languageCode = "en-us"
+title = "Crypto Tax"
+theme = "landing-page-hugo"
+
+[params]
+  description = "収支をかんたんに管理しましょう!"
+
+[[params.social]]
+  title = "twitter"
+  icon = "twitter"
+  url = "https://twitter.com/SBootstrap"
