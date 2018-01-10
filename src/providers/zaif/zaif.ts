@@ -13,6 +13,8 @@ import { LatestPriceProvider, ILatestPrice } from '../latest-price/latest-price'
 import { GetPositionResponse } from 'zaif-promise';
 import * as dl from 'datalib'
 import { AngularFireAuth } from 'angularfire2/auth';
+import 'rxjs/add/operator/mergeMap'
+import { Observable } from 'rxjs/Observable';
 
 /*
   Generated class for the ZaifProvider provider.
@@ -51,22 +53,26 @@ export class ZaifProvider extends TradesBaseProvider {
   }
 
   getInfo() {
-    return this.lock.acquire(this.key, () => {
-      return this.http.post(this.URL_PRIVATE +  '/info', {
-        key: this.key,
-        secret: this.secret
-      }).toPromise();
-    });
+    return new Promise((resolve, reject) => {
+      this.lock.acquire(this.key, () => {
+        return this.http.post(this.URL_PRIVATE +  '/info', {
+          key: this.key,
+          secret: this.secret
+        }).toPromise();
+      }, resolve);
+    })
   }
 
   getTradeHistory(from: number = 0, to: number = 0, is_token: boolean = false) {
-    return this.lock.acquire(this.key, () => {
-      return this.http.post(this.URL_PRIVATE + '/trade_history', {
-        key: this.key,
-        secret: this.secret,
-        from, to, is_token
-      }).toPromise();
-    });
+    return new Promise((resolve, reject) => {
+      this.lock.acquire(this.key, () => {
+        return this.http.post(this.URL_PRIVATE + '/trade_history', {
+          key: this.key,
+          secret: this.secret,
+          from, to, is_token
+        }).toPromise();
+      }, resolve);
+    })
   }
 
   getLeverageHistory(from: number = 0, to: number = 0, type: string = 'margin') {
@@ -88,7 +94,7 @@ export class ZaifProvider extends TradesBaseProvider {
     return this.lpp.latestPrice$
     .take(1)
     .mergeMap<ILatestPrice[], FundsInterface[]>(latest_prices => {
-      return this.getInfo()
+      return Observable.fromPromise(this.getInfo()
       .then((info: any) => {
         return Promise.all(Object.entries(info.funds)
           .map(e => {
@@ -118,7 +124,7 @@ export class ZaifProvider extends TradesBaseProvider {
           return ret;
         })
       })
-    })
+    )})
   }
 
   aggregateTradeHistory(update = false, start = moment().startOf('year'), end = moment().endOf('year')): Promise<AggregateInterface[]> {
@@ -166,7 +172,7 @@ export class ZaifProvider extends TradesBaseProvider {
       }, {})
       return Object.entries(aggregate).map(([k, v]) => { return {
         currency_pair: k,
-        profit: v,
+        profit: <number>v,
       }})
     })
   } 

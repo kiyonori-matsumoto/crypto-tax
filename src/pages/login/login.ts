@@ -19,8 +19,8 @@ import { AlertController } from 'ionic-angular/components/alert/alert-controller
 })
 export class LoginPage {
 
-  private email = "";
-  private password = "";
+  email = "";
+  password = "";
 
   constructor(
     public navCtrl: NavController,

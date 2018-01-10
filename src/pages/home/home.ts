@@ -67,7 +67,12 @@ export class HomePage {
     console.log(gtag);
     this.gtag.pageView('/home');
     this.funds$ = this.afAuth.authState.filter(u => !!u).map(u => u.uid)
-      .mergeMap(uid => this.afs.collection('users').doc(uid).collection('balance', ref => ref.orderBy('time', 'desc').limit(1)).valueChanges()).map(e => Object.entries(e[0]).filter(e => e[0] !== 'time').map(g => g.concat(Object.entries(e[0]).find(f => f[0] === 'time')[1])));
+      .mergeMap(uid => this.afs.collection('users').doc(uid).collection('balance', ref => ref.orderBy('time', 'desc').limit(1)).valueChanges())
+      .map(e => Object.entries(e[0])
+        .filter(e => e[0] !== 'time')
+        .filter(e => e[1].length !== 0)
+        .map(g => g.concat(Object.entries(e[0]).find(f => f[0] === 'time')[1]))
+      );
   }
 
   public connect(provider: string, p: TradesBaseProvider) {

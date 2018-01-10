@@ -28,7 +28,7 @@
           <ion-label>Password</ion-label>
           <ion-input type="password" [(ngModel)]="password" ></ion-input>
         </ion-item>
-        <button ion-button block (click)="loginByEmail()">Login</button>
+        <button ion-button block (click)="loginByEmail()" disabled>Login</button>
         <hr>
         <button ion-button block color="danger" (click)="loginByGoogle()">
           <ion-icon name="logo-google"></ion-icon>&nbsp;

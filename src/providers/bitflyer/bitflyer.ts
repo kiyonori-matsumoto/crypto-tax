@@ -7,8 +7,9 @@ import { AggregateInterface, TradeAggregateProvider } from '../trade-aggregate/t
 import * as moment from 'moment';
 import * as firebase from 'firebase'
 import { AngularFirestore } from 'angularfire2/firestore';
-import { LatestPriceProvider } from '../latest-price/latest-price';
+import { LatestPriceProvider, ILatestPrice } from '../latest-price/latest-price';
 import { AngularFireAuth } from 'angularfire2/auth';
+import { Observable } from 'rxjs';
 
 /*
   Generated class for the BitflyerProvider provider.
@@ -74,8 +75,8 @@ export class BitflyerProvider extends TradesBaseProvider {
     }
 
     return this.lpp.latestPrice$
-      .mergeMap<any, FundsInterface[]>(latest_prices => {
-        return this.getInfo()
+      .mergeMap<ILatestPrice[], FundsInterface[]>(latest_prices => {
+        return Observable.fromPromise(this.getInfo()
           .then((info: any) => {
             return Promise.all(info
               .map(e => {
@@ -107,6 +108,7 @@ export class BitflyerProvider extends TradesBaseProvider {
                 return ret;
               })
           })
+        )
       })
   }
 
